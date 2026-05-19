@@ -9,10 +9,17 @@ export default async function handler(req, res) {
   }
 
   try {
+    console.log('[HubSpot Proxy] req.url:', req.url);
+    console.log('[HubSpot Proxy] req.method:', req.method);
+    console.log('[HubSpot Proxy] req.headers.authorization:', req.headers.authorization ? 'present' : 'missing');
+    console.log('[HubSpot Proxy] req.body type:', typeof req.body, Buffer.isBuffer(req.body) ? 'Buffer' : '');
+
     // Remove query string from path
     const pathWithQuery = req.url.replace(/^\/api\/hubspot-proxy/, '') || '';
     const path = pathWithQuery.split('?')[0];
     const target = `https://api.hubapi.com${path}`;
+
+    console.log('[HubSpot Proxy] target:', target);
 
     const auth = req.headers.authorization || '';
     const method = req.method;
@@ -29,6 +36,8 @@ export default async function handler(req, res) {
       }
     }
 
+    console.log('[HubSpot Proxy] body length:', body ? body.length : 0);
+
     const fetchOptions = {
       method,
       headers: {
@@ -44,6 +53,9 @@ export default async function handler(req, res) {
 
     const response = await fetch(target, fetchOptions);
     const responseText = await response.text();
+
+    console.log('[HubSpot Proxy] HubSpot response status:', response.status);
+    console.log('[HubSpot Proxy] HubSpot response:', responseText.slice(0, 300));
 
     res.status(response.status);
     res.setHeader('Content-Type', 'application/json');
