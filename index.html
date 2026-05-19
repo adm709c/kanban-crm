@@ -6987,6 +6987,10 @@ window.addEventListener('DOMContentLoaded', function() {
 
   async function initFirebase() {
     try {
+      if (!window.firebase) {
+        console.log('Firebase SDK not loaded yet, retrying...');
+        return setTimeout(initFirebase, 500);
+      }
       const firebaseConfig = {
         apiKey: "AIzaSyBdk2u6IpmJ2twpx9GD3Wnc0DhrsyJ6h0Q",
         authDomain: "kanban-crm-sync.firebaseapp.com",
@@ -6995,8 +6999,11 @@ window.addEventListener('DOMContentLoaded', function() {
         messagingSenderId: "230818472666",
         appId: "1:230818472666:web:3a3c5b91cf892edcfffbe3"
       };
-      firebase.initializeApp(firebaseConfig);
+      if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+      }
       db = firebase.firestore();
+      console.log('Firebase initialized successfully');
     } catch(e) { console.error('Firebase init error:', e); }
   }
 
