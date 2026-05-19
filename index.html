@@ -6191,11 +6191,7 @@
     const showBtn = document.getElementById('roas-token-show-btn');
     const pubBtn  = document.getElementById('roas-export-publish-btn');
     if (!IS_LOCAL) {
-      if (inp && !inp.value) {
-        inp.value = 'pat-na1-b8b15495-902c-40f2-99e7-17d46ab35b1f';
-        inp.readOnly = true;
-        inp.type = 'password';
-      }
+      if (inp && !inp.value) inp.value = loadHSToken();
       if (showBtn) showBtn.style.display = '';
     } else {
       if (inp && !inp.value) inp.value = loadHSToken();
