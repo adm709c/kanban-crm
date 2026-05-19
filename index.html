@@ -1336,6 +1336,9 @@
       <span id="sync-status-msg" style="font-size:11px;color:#8E8E93;margin-left:4px;"></span>
       <button class="roas-show-btn" onclick="exportMetaCSV()" title="Exportar clientes para CSV do Meta Ads">⬇ Exportar CSV Meta</button>
       <button class="roas-show-btn" onclick="exportGoogleCSV()" title="Exportar clientes para Customer Match do Google Ads">⬇ Exportar CSV Google</button>
+      <button class="roas-show-btn" id="export-data-btn" onclick="exportAllData()" style="display:none;" title="Exportar todos os dados do localStorage">⬇ Exportar Dados</button>
+      <button class="roas-show-btn" id="import-data-btn" onclick="triggerImportDataFile()" style="display:none;" title="Importar dados de arquivo JSON">⬆ Importar Dados</button>
+      <input type="file" id="data-file-input" accept=".json" style="display:none;" onchange="importDataFile(event)"/>
     </div>
     <div class="roas-body" id="roas-body">
       <div class="roas-empty"><strong>Conecte ao HubSpot</strong>Cole o token acima e clique em Sincronizar para carregar os dados de deals.</div>
@@ -5856,6 +5859,53 @@
     }
   }
 
+  function exportAllData() {
+    const data = {};
+    for (let key in localStorage) {
+      try {
+        data[key] = localStorage.getItem(key);
+      } catch(e) {}
+    }
+    const json = JSON.stringify(data, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `kanban-data-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function triggerImportDataFile() {
+    document.getElementById('data-file-input').click();
+  }
+
+  function importDataFile(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const data = JSON.parse(e.target.result);
+        let count = 0;
+        for (let key in data) {
+          try {
+            localStorage.setItem(key, data[key]);
+            count++;
+          } catch(err) {}
+        }
+        alert(`✅ ${count} itens importados com sucesso. A página será recarregada.`);
+        location.reload();
+      } catch(err) {
+        alert('❌ Erro ao importar arquivo: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+    event.target.value = '';
+  }
+
   function fmtBRL(v) {
     if (!v && v !== 0) return 'R$ —';
     return 'R$ ' + Number(v).toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
@@ -6190,12 +6240,16 @@
     const inp     = document.getElementById('roas-token');
     const showBtn = document.getElementById('roas-token-show-btn');
     const pubBtn  = document.getElementById('roas-export-publish-btn');
+    const exportDataBtn = document.getElementById('export-data-btn');
+    const importDataBtn = document.getElementById('import-data-btn');
     if (!IS_LOCAL) {
       if (inp && !inp.value) inp.value = loadHSToken();
       if (showBtn) showBtn.style.display = '';
+      if (importDataBtn) importDataBtn.style.display = '';
     } else {
       if (inp && !inp.value) inp.value = loadHSToken();
       if (pubBtn) pubBtn.style.display = '';
+      if (exportDataBtn) exportDataBtn.style.display = '';
     }
     let cached = null;
     try { cached = JSON.parse(localStorage.getItem(ROAS_DATA_KEY) || 'null'); } catch(e) {}
