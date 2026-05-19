@@ -1,5 +1,4 @@
 export default async function handler(req, res) {
-  // Ativa CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
@@ -10,25 +9,31 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Extrai path: /api/hubspot-proxy/crm/v3/objects/deals → /crm/v3/objects/deals
     const path = req.url.replace(/^\/api\/hubspot-proxy/, '');
     const target = `https://api.hubapi.com${path}`;
 
     const auth = req.headers.authorization || '';
     const method = req.method;
-    const body = method === 'POST' || method === 'PUT' ? JSON.stringify(req.body) : null;
 
-    const headers = {
-      'Authorization': auth,
-      'Content-Type': 'application/json',
-      'User-Agent': 'MarketingOps/1.0'
-    };
+    let body = null;
+    if (method === 'POST' || method === 'PUT') {
+      if (typeof req.body === 'string') {
+        body = req.body;
+      } else if (req.body) {
+        body = JSON.stringify(req.body);
+      }
+    }
 
     const fetchOptions = {
       method,
-      headers,
-      ...(body && { body })
+      headers: {
+        'Authorization': auth,
+        'Content-Type': 'application/json',
+        'User-Agent': 'MarketingOps/1.0'
+      }
     };
+
+    if (body) fetchOptions.body = body;
 
     const response = await fetch(target, fetchOptions);
     const data = await response.text();
