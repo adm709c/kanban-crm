@@ -6193,8 +6193,12 @@
     const showBtn = document.getElementById('roas-token-show-btn');
     const pubBtn  = document.getElementById('roas-export-publish-btn');
     if (!IS_LOCAL) {
-      if (inp) { inp.style.filter = 'blur(6px)'; inp.style.pointerEvents = 'none'; inp.style.userSelect = 'none'; }
-      if (showBtn) showBtn.style.display = 'none';
+      if (inp && !inp.value) {
+        inp.value = 'pat-na1-b8b15495-902c-40f2-99e7-17d46ab35b1f';
+        inp.readOnly = true;
+        inp.type = 'password';
+      }
+      if (showBtn) showBtn.style.display = '';
     } else {
       if (inp && !inp.value) inp.value = loadHSToken();
       if (pubBtn) pubBtn.style.display = '';
@@ -6865,22 +6869,6 @@ window.addEventListener('DOMContentLoaded', function() {
   renderAll();
   updateHUD();
 
-  // Bloqueia token HubSpot em produção com autenticação
-  if (!window.location.hostname.includes('localhost')) {
-    setTimeout(() => {
-      const tokenField = document.getElementById('roas-token');
-      const tokenShowBtn = document.getElementById('roas-token-show-btn');
-      if (tokenField) {
-        tokenField.value = 'pat-na1-b8b15495-902c-40f2-99e7-17d46ab35b1f';
-        tokenField.readOnly = true;
-        tokenField.type = 'password';
-        tokenField.title = 'Clique em "Mostrar" e digite a senha para desbloquear.';
-        if (tokenShowBtn) {
-          tokenShowBtn.textContent = 'Mostrar';
-        }
-      }
-    }, 100);
-  }
   </script>
 </body>
 </html>
