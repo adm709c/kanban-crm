@@ -4,6 +4,10 @@
   "cleanUrls": true,
   "routes": [
     {
+      "src": "/api/hubspot-proxy(/.*)?",
+      "dest": "/api/hubspot-proxy.js"
+    },
+    {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
     },
