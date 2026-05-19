@@ -6867,19 +6867,19 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Bloqueia token HubSpot em produção com autenticação
   if (!window.location.hostname.includes('localhost')) {
-    const tokenField = document.getElementById('roas-token');
-    const tokenShowBtn = document.getElementById('roas-token-show-btn');
-    if (tokenField) {
-      tokenField.value = 'pat-na1-b8b15495-902c-40f2-99e7-17d46ab35b1f';
-      tokenField.classList.add('token-locked');
-      tokenField.readOnly = true;
-      tokenField.type = 'password';
-      tokenField.title = 'Clique em "Mostrar" e digite a senha para desbloquear.';
-      if (tokenShowBtn) {
-        tokenShowBtn.style.opacity = '1';
-        tokenShowBtn.textContent = 'Mostrar';
+    setTimeout(() => {
+      const tokenField = document.getElementById('roas-token');
+      const tokenShowBtn = document.getElementById('roas-token-show-btn');
+      if (tokenField) {
+        tokenField.value = 'pat-na1-b8b15495-902c-40f2-99e7-17d46ab35b1f';
+        tokenField.readOnly = true;
+        tokenField.type = 'password';
+        tokenField.title = 'Clique em "Mostrar" e digite a senha para desbloquear.';
+        if (tokenShowBtn) {
+          tokenShowBtn.textContent = 'Mostrar';
+        }
       }
-    }
+    }, 100);
   }
   </script>
 </body>
