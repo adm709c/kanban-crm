@@ -8,10 +8,22 @@ export default async function handler(req, res) {
     return;
   }
 
+  // Test endpoint
+  if (req.url === '/api/hubspot-proxy/test') {
+    const auth = req.headers.authorization || '';
+    return res.json({
+      test: 'ok',
+      authHeaderLength: auth.length,
+      authToken: auth.slice(0, 20) + '...',
+      timestamp: new Date().toISOString()
+    });
+  }
+
   try {
     console.log('[HubSpot Proxy] req.url:', req.url);
     console.log('[HubSpot Proxy] req.method:', req.method);
-    console.log('[HubSpot Proxy] req.headers.authorization:', req.headers.authorization ? 'present' : 'missing');
+    const auth = req.headers.authorization || '';
+    console.log('[HubSpot Proxy] Authorization header:', auth.slice(0, 30) + (auth.length > 30 ? '...' : ''));
     console.log('[HubSpot Proxy] req.body type:', typeof req.body, Buffer.isBuffer(req.body) ? 'Buffer' : '');
 
     // Remove query string from path
