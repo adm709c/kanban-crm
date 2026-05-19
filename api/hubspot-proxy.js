@@ -1,6 +1,6 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type');
 
   if (req.method === 'OPTIONS') {
@@ -9,7 +9,9 @@ export default async function handler(req, res) {
   }
 
   try {
-    const path = req.url.replace(/^\/api\/hubspot-proxy/, '');
+    // Remove query string from path
+    const pathWithQuery = req.url.replace(/^\/api\/hubspot-proxy/, '') || '';
+    const path = pathWithQuery.split('?')[0];
     const target = `https://api.hubapi.com${path}`;
 
     const auth = req.headers.authorization || '';
@@ -17,9 +19,12 @@ export default async function handler(req, res) {
 
     let body = null;
     if (method === 'POST' || method === 'PUT') {
+      // Handle body - could be string, buffer, or object
       if (typeof req.body === 'string') {
         body = req.body;
-      } else if (req.body) {
+      } else if (Buffer.isBuffer(req.body)) {
+        body = req.body.toString('utf-8');
+      } else if (req.body && typeof req.body === 'object') {
         body = JSON.stringify(req.body);
       }
     }
@@ -33,21 +38,23 @@ export default async function handler(req, res) {
       }
     };
 
-    if (body) fetchOptions.body = body;
+    if (body) {
+      fetchOptions.body = body;
+    }
 
     const response = await fetch(target, fetchOptions);
-    const data = await response.text();
-
-    // Log para debug
-    console.log(`[HubSpot Proxy] ${method} ${target}`);
-    console.log(`[HubSpot Proxy] Status: ${response.status}`);
-    console.log(`[HubSpot Proxy] Response: ${data.slice(0, 200)}`);
+    const responseText = await response.text();
 
     res.status(response.status);
     res.setHeader('Content-Type', 'application/json');
-    res.send(data);
+
+    try {
+      res.json(JSON.parse(responseText));
+    } catch {
+      res.send(responseText);
+    }
   } catch (err) {
-    console.error('[HubSpot Proxy] Error:', err);
+    console.error('[HubSpot Proxy] Error:', err.message);
     res.status(502).json({ error: err.message });
   }
 }
