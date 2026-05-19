@@ -6988,13 +6988,16 @@ window.addEventListener('DOMContentLoaded', function() {
   async function initFirebase() {
     try {
       const firebaseConfig = {
-        apiKey: "AIzaSyDvWTyNq0WH_ZqK6qN5pL1Z8_0M1Z5Z5aA",
+        apiKey: "AIzaSyBdk2u6IpmJ2twpx9GD3Wnc0DhrsyJ6h0Q",
+        authDomain: "kanban-crm-sync.firebaseapp.com",
         projectId: "kanban-crm-sync",
-        databaseURL: "https://kanban-crm-sync-default-rtdb.firebaseio.com"
+        storageBucket: "kanban-crm-sync.firebasestorage.app",
+        messagingSenderId: "230818472666",
+        appId: "1:230818472666:web:3a3c5b91cf892edcfffbe3"
       };
       firebase.initializeApp(firebaseConfig);
       db = firebase.firestore();
-    } catch(e) {}
+    } catch(e) { console.error('Firebase init error:', e); }
   }
 
   async function syncToCloud() {
