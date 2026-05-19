@@ -6,8 +6,7 @@
   <title>Live University - Growth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -3970,11 +3969,13 @@
 
   const FORMATURA_STAGES = [
     { id:'formatura_email', label:'E-mail Formatura',     color:'#8e2694', delay:'Envio único — alunos aptos' },
+    { id:'formatura_docs',  label:'E-mail Documentação',  color:'#FF9500', delay:'Envio único — docs pendentes' },
     { id:'formatura_wpp',   label:'WhatsApp Formatura',   color:'#25D366', delay:'Envio único — alunos aptos', isWpp: true },
   ];
 
   const EMAIL_FORMATURA_DEFAULTS = {
     formatura_email: {
+      formatura_photo: 'https://d2weg8qu1qcrus.cloudfront.net/gba3a930d97a0af8a182dc428256fcd2b/live-55.jpg?token=2dcdc4796a4409ae5a5564bc20ac44e6b93d54196a83fe1eac2e442d5edbf650&size=1400&wm=0',
       testeira_title: 'Você chegou lá. Hora de celebrar.',
       testeira_sub: 'Formatura MBA 2025 · Live University',
       subject: '{primeiro_nome}, sua Formatura MBA está chegando 🎓',
@@ -3985,6 +3986,20 @@
       cta_text: 'Confirmar minha presença',
       cta_link: '',
       ps: 'Evento 100% gratuito. Vagas limitadas: a confirmação garante o seu lugar na cerimônia.',
+      footer_type: 'alunos',
+    },
+    formatura_docs: {
+      formatura_photo: 'https://d2weg8qu1qcrus.cloudfront.net/gba3a930d97a0af8a182dc428256fcd2b/live-142.jpg?token=2dcdc4796a4409ae5a5564bc20ac44e6b93d54196a83fe1eac2e442d5edbf650&size=2400&wm=0',
+      testeira_title: 'Sua formatura está chegando.',
+      testeira_sub: 'Formatura MBA 2025 · Live University',
+      subject: '{primeiro_nome}, faltam documentos para sua Formatura MBA 🎓',
+      greeting: 'Oi, {primeiro_nome}!',
+      p1: 'Que bom que você chegou até aqui! Sua **Formatura MBA 2025** está marcada para o dia **12 de dezembro, às 19h**, na Live University.',
+      p2: 'Para que você consiga participar da cerimônia e retirar seu diploma físico, é fundamental que toda a sua documentação esteja **entregue e regularizada** junto à secretaria.\n\n⚠️ **Atenção:** Verificamos que você ainda tem pendências em sua documentação. Para não perder este momento especial, é importante que você resolva isso com antecedência.',
+      p3: 'Entre em contato conosco para saber exatamente o que está faltando e como regularizar sua situação. Queremos muito contar com você nesta celebração!',
+      cta_text: 'Regularizar minha documentação',
+      cta_link: '',
+      ps: 'Prazo final: você tem até 30 de novembro para entregar toda documentação. Após essa data, você não poderá participar da cerimônia.',
       footer_type: 'alunos',
     },
     formatura_wpp: {
@@ -4020,8 +4035,7 @@
       ps: 'Certificação com reconhecimento internacional pela ASIC. 2 dias de imersão intensiva.',
     },
     reforma_fiscal_fria: {
-      testeira_title: 'Regulamentação de abril: conteúdo 100% atualizado para sua área',
-      testeira_sub: 'Área Fiscal & Tributária · CONFEB',
+      testeira: false,
       subject: 'Reforma tributária: o regulamento de abril chegou. Sua área fiscal está preparada?',
       greeting: 'Olá!',
       p1: 'Se você atua na área fiscal ou tributária, os próximos meses vão exigir muito mais do que conhecimento técnico. Vão exigir velocidade de adaptação.',
@@ -4396,6 +4410,21 @@
       ? new Date(content.send_date + 'T12:00:00').toLocaleDateString('pt-BR', {day:'2-digit',month:'long',year:'numeric'})
       : null;
 
+    let testeiraHtml = '';
+    if (content.testeira !== false) {
+      if (emailActiveFolder === 'formatura') {
+        testeiraHtml = `<div style="background-image:linear-gradient(90deg, rgba(142,38,148,.95) 0%, rgba(142,38,148,.6) 60%, rgba(142,38,148,0) 100%), url('${esc(content.formatura_photo||'')}'); background-position:88% 40%; background-size:cover; background-repeat:no-repeat; padding:60px 40px; min-height:160px; display:flex; align-items:center; justify-content:flex-start; position:relative; overflow:hidden;">
+          <div style="position:absolute; inset:0; background:radial-gradient(circle at 15% 50%, rgba(255,255,255,.03), transparent 60%); pointer-events:none;"></div>
+          <div style="position:relative; z-index:1; display:flex; flex-direction:column; align-items:flex-start; gap:4px; max-width:280px;">
+            <div style="font-size:22px; font-weight:800; color:#fff; line-height:1.2; font-family:'Poppins',sans-serif; text-shadow:0 2px 8px rgba(0,0,0,.25);">Você chegou lá 🎓</div>
+            <div style="font-size:11px; color:rgba(255,255,255,.9); font-family:'Poppins',sans-serif; text-shadow:0 1px 3px rgba(0,0,0,.2);">Hora de celebrar essa conquista</div>
+          </div>
+        </div>`;
+      } else {
+        testeiraHtml = `<div style="background:#8e2694; padding:12px 32px 10px; text-align:center;"><div id="et-title-${stage.id}" contenteditable="true" spellcheck="false" onblur="saveTesteiraField('${stage.id}','testeira_title',this.textContent)" style="font-size:16px;font-weight:800;color:#fff;line-height:1.2;outline:none;border-bottom:1.5px dashed rgba(255,255,255,.35);padding-bottom:2px;cursor:text;min-width:40px;display:inline-block;font-family:'Poppins',sans-serif;">${esc(content.testeira_title||'Live University')}</div><div id="et-sub-${stage.id}" contenteditable="true" spellcheck="false" onblur="saveTesteiraField('${stage.id}','testeira_sub',this.textContent)" style="font-size:11px;color:rgba(255,255,255,.75);margin-top:3px;font-weight:400;outline:none;border-bottom:1px dashed rgba(255,255,255,.25);padding-bottom:1px;cursor:text;min-width:30px;display:inline-block;font-family:'Poppins',sans-serif;letter-spacing:.02em;">${esc(content.testeira_sub||'')}</div><div style="margin-top:6px;padding-top:8px;border-top:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;">${stage.id === 'reforma_fiscal_fria' ? '<img src="logo-confeb.png" alt="Confeb" style="height:12px;opacity:.7;">' : '<img src="logo-inbrasc.png" alt="Inbrasc" style="height:12px;opacity:.7;">'}</div><div style="font-size:8px;color:rgba(255,255,255,.2);margin-top:3px;font-family:'Poppins',sans-serif;">clique para editar</div></div>`;
+      }
+    }
+
     preview.innerHTML = `
       <span class="emails-col-label nova">Nova Proposta</span>
       ${sendDateFmt ? `<div style="font-size:11px;font-weight:600;color:#8E8E93;text-align:center;">📅 Envio previsto: <span style="color:#1C1C1E;">${sendDateFmt}</span></div>` : ''}
@@ -4404,29 +4433,7 @@
           De: <span>Live University &lt;noreply@liveuniversity.com&gt;</span> &nbsp;·&nbsp;
           Assunto: <span>${esc(content.subject||'')}</span>
         </div>
-        <div style="background:#8e2694; padding:36px 32px 24px; text-align:center;">
-          <div id="et-title-${stage.id}"
-            contenteditable="true"
-            spellcheck="false"
-            onblur="saveTesteiraField('${stage.id}','testeira_title',this.textContent)"
-            style="font-size:24px;font-weight:800;color:#fff;line-height:1.2;outline:none;border-bottom:1.5px dashed rgba(255,255,255,.35);padding-bottom:4px;cursor:text;min-width:40px;display:inline-block;font-family:'Poppins',sans-serif;"
-          >${esc(content.testeira_title||'Live University')}</div>
-          <div id="et-sub-${stage.id}"
-            contenteditable="true"
-            spellcheck="false"
-            onblur="saveTesteiraField('${stage.id}','testeira_sub',this.textContent)"
-            style="font-size:12px;color:rgba(255,255,255,.75);margin-top:8px;font-weight:400;outline:none;border-bottom:1px dashed rgba(255,255,255,.25);padding-bottom:2px;cursor:text;min-width:30px;display:inline-block;font-family:'Poppins',sans-serif;letter-spacing:.02em;"
-          >${esc(content.testeira_sub||'')}</div>
-          <div style="margin-top:20px;padding-top:16px;border-top:1px solid rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;gap:16px;flex-wrap:wrap;">
-            ${(emailActiveFolder==='formatura' || stage.id==='z_pos_inv')
-              ? `<img src="logo-liveu.png" alt="Live University" style="height:18px;opacity:.85;">`
-              : stage.id === 'reforma_fiscal_fria'
-                ? `<img src="logo-confeb.png" alt="Confeb" style="height:16px;opacity:.7;">`
-                : `<img src="logo-inbrasc.png" alt="Inbrasc" style="height:16px;opacity:.7;">`
-            }
-          </div>
-          <div style="font-size:9px;color:rgba(255,255,255,.25);margin-top:8px;font-family:'Poppins',sans-serif;">clique para editar</div>
-        </div>
+        ${testeiraHtml}
         <div class="email-body">
           <p class="email-greeting">${md(content.greeting||'')}</p>
           <p class="email-p">${md(content.p1||'')}</p>
@@ -4452,10 +4459,11 @@
           ${content.ps ? `<p style="font-size:11px;color:#8E8E93;text-align:center;margin:0;">${md(content.ps)}</p>` : ''}
         </div>
         <div class="email-footer">
-          <div style="width:28px;height:2px;background:#ebca0c;margin:0 auto 12px;border-radius:2px;"></div>
+          ${content.testeira === false ? '' : '<div style="width:28px;height:2px;background:#ebca0c;margin:0 auto 12px;border-radius:2px;"></div>'}
+          ${emailActiveFolder === 'formatura' ? '<div style="text-align:center;margin-bottom:12px;"><img src="logo-liveu.png" alt="Live University" style="height:18px;opacity:.6;"></div>' : ''}
           ${(content.footer_type||'leads') === 'alunos'
             ? 'Você está recebendo este e-mail por ser aluno da Live University.'
-            : 'Você está recebendo este e-mail porque demonstrou interesse em nossos programas.<br><span style="color:#ebca0c;cursor:pointer;text-decoration:underline;">Descadastrar</span>'
+            : 'Você está recebendo este e-mail porque demonstrou interesse em nossos programas.<br><span style="color:#8E8E93;cursor:pointer;">Descadastrar</span>'
           }
         </div>
       </div>
@@ -4573,7 +4581,7 @@
 
     const footerText = (content.footer_type||'leads') === 'alunos'
       ? 'Você está recebendo este e-mail por ser aluno da Live University.'
-      : 'Você está recebendo este e-mail porque demonstrou interesse em nossos programas.<br><a href="*|UNSUB|*" style="color:#ebca0c;text-decoration:underline;">Descadastrar</a>';
+      : 'Você está recebendo este e-mail porque demonstrou interesse em nossos programas.<br><a href="*|UNSUB|*" style="color:#8E8E93;">Descadastrar</a>';
 
     const html = `<!DOCTYPE html>
 <html lang="pt-BR">
@@ -6972,9 +6980,8 @@ window.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
   }
 
-  // ── Firebase Sync ──────────────────────────────────────────────────────────
+  // ── Supabase Sync ──────────────────────────────────────────────────────────
   const DEVICE_ID_KEY = 'device_id_sync';
-  let db = null;
 
   function getDeviceId() {
     let id = localStorage.getItem(DEVICE_ID_KEY);
@@ -6985,76 +6992,75 @@ window.addEventListener('DOMContentLoaded', function() {
     return id;
   }
 
-  async function initFirebase() {
+  let supabaseClient = null;
+
+  async function initSupabase() {
     try {
-      if (!window.firebase) {
-        console.log('Firebase SDK not loaded yet, retrying...');
-        return setTimeout(initFirebase, 500);
+      if (!window.supabase) {
+        console.log('Supabase SDK not loaded yet, retrying...');
+        return setTimeout(initSupabase, 500);
       }
-      const firebaseConfig = {
-        apiKey: "AIzaSyBdk2u6IpmJ2twpx9GD3Wnc0DhrsyJ6h0Q",
-        authDomain: "kanban-crm-sync.firebaseapp.com",
-        projectId: "kanban-crm-sync",
-        storageBucket: "kanban-crm-sync.firebasestorage.app",
-        messagingSenderId: "230818472666",
-        appId: "1:230818472666:web:3a3c5b91cf892edcfffbe3"
-      };
-      if (!firebase.apps.length) {
-        firebase.initializeApp(firebaseConfig);
-      }
-      db = firebase.firestore();
-      console.log('Firebase initialized successfully');
-    } catch(e) { console.error('Firebase init error:', e); }
+      const SUPABASE_URL = 'https://fszhjoydozwdjjjmunej.supabase.co';
+      const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZzemhqb3lkb3p3ZGpqam11bmVqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzkyMTIzNjksImV4cCI6MjA5NDc4ODM2OX0.QxT5-V0ZYqxqsa9EGphNInCKb8GEqkRzmZgR5J3XYTw';
+      supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      console.log('Supabase initialized successfully');
+    } catch(e) { console.error('Supabase init error:', e); }
   }
 
   async function syncToCloud() {
-    if (!db) return;
+    if (!supabaseClient) return;
     const deviceId = getDeviceId();
     try {
       const data = {};
       for (let key in localStorage) {
         if (!key.startsWith('__')) data[key] = localStorage.getItem(key);
       }
-      await db.collection('devices').doc(deviceId).set({
-        data,
-        lastSync: new Date().toISOString(),
-        device: navigator.userAgent
-      });
-    } catch(e) {}
+      await supabaseClient
+        .from('painel_dados')
+        .upsert({ device_id: deviceId, data }, { onConflict: 'device_id' });
+      console.log('✅ Dados sincronizados para a nuvem', deviceId);
+    } catch(e) { console.error('Erro ao sincronizar:', e); }
   }
 
   async function syncFromCloud() {
-    if (!db) return;
+    if (!supabaseClient) return;
     const deviceId = getDeviceId();
     try {
-      const doc = await db.collection('devices').doc(deviceId).get();
-      if (doc.exists && doc.data().data) {
-        const cloudData = doc.data().data;
-        for (let key in cloudData) {
-          try { localStorage.setItem(key, cloudData[key]); } catch(e) {}
+      const { data: rows, error } = await supabaseClient
+        .from('painel_dados')
+        .select('data')
+        .eq('device_id', deviceId)
+        .single();
+
+      if (!error && rows && rows.data) {
+        for (let key in rows.data) {
+          try { localStorage.setItem(key, rows.data[key]); } catch(e) {}
         }
+        console.log('✅ Dados carregados da nuvem');
         return true;
       }
-    } catch(e) {}
+    } catch(e) { console.error('Erro ao sincronizar da nuvem:', e); }
     return false;
   }
 
   // ── Init ──────────────────────────────────────────────────────────────────
-  initFirebase();
-  syncFromCloud().then(() => {
+  async function startApp() {
+    await initSupabase();
+    await new Promise(r => setTimeout(r, 500)); // Aguarda Supabase estar pronto
+    await syncFromCloud(); // Carrega dados da nuvem primeiro
     loadGame();
     loadPlan();
     loadAtas();
     loadCustomEvents();
-  }).catch(() => {
+    setInterval(syncToCloud, 10000); // Sync a cada 10 segundos
+  }
+
+  startApp().catch(() => {
     loadGame();
     loadPlan();
     loadAtas();
     loadCustomEvents();
   });
-
-  // Sync to cloud a cada 10 segundos
-  setInterval(syncToCloud, 10000);
   loadLps();
   loadFlows();
   loadMediaPlans();

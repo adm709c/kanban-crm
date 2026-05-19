@@ -53,6 +53,9 @@ service cloud.firestore {
     match /devices/{deviceId} {
       allow read, write: if true;
     }
+    match /sync/{document=**} {
+      allow read, write: if true;
+    }
   }
 }
 ```
