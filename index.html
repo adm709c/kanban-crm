@@ -6867,6 +6867,17 @@ window.addEventListener('DOMContentLoaded', function() {
   renderAll();
   updateHUD();
 
+  // Hide all tabs on Vercel, show only Painel de Mídia
+  if (!IS_LOCAL) {
+    const tabsToHide = ['kanban', 'agenda', 'atas', 'plano', 'lps', 'fluxos', 'emails', 'conteudo', 'roas', 'conquistas'];
+    tabsToHide.forEach(tab => {
+      const btn = document.getElementById('tab-' + tab);
+      if (btn) btn.style.display = 'none';
+    });
+    // Show only Painel de Mídia
+    switchTab('midia');
+  }
+
   </script>
 </body>
 </html>
