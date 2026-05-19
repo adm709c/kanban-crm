@@ -6,6 +6,8 @@
   <title>Live University - Growth</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -6970,11 +6972,79 @@ window.addEventListener('DOMContentLoaded', function() {
     renderCalendar();
   }
 
+  // ── Firebase Sync ──────────────────────────────────────────────────────────
+  const DEVICE_ID_KEY = 'device_id_sync';
+  let db = null;
+
+  function getDeviceId() {
+    let id = localStorage.getItem(DEVICE_ID_KEY);
+    if (!id) {
+      id = 'dev_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+      localStorage.setItem(DEVICE_ID_KEY, id);
+    }
+    return id;
+  }
+
+  async function initFirebase() {
+    try {
+      const firebaseConfig = {
+        apiKey: "AIzaSyDvWTyNq0WH_ZqK6qN5pL1Z8_0M1Z5Z5aA",
+        projectId: "kanban-crm-sync",
+        databaseURL: "https://kanban-crm-sync-default-rtdb.firebaseio.com"
+      };
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch(e) {}
+  }
+
+  async function syncToCloud() {
+    if (!db) return;
+    const deviceId = getDeviceId();
+    try {
+      const data = {};
+      for (let key in localStorage) {
+        if (!key.startsWith('__')) data[key] = localStorage.getItem(key);
+      }
+      await db.collection('devices').doc(deviceId).set({
+        data,
+        lastSync: new Date().toISOString(),
+        device: navigator.userAgent
+      });
+    } catch(e) {}
+  }
+
+  async function syncFromCloud() {
+    if (!db) return;
+    const deviceId = getDeviceId();
+    try {
+      const doc = await db.collection('devices').doc(deviceId).get();
+      if (doc.exists && doc.data().data) {
+        const cloudData = doc.data().data;
+        for (let key in cloudData) {
+          try { localStorage.setItem(key, cloudData[key]); } catch(e) {}
+        }
+        return true;
+      }
+    } catch(e) {}
+    return false;
+  }
+
   // ── Init ──────────────────────────────────────────────────────────────────
-  loadGame();
-  loadPlan();
-  loadAtas();
-  loadCustomEvents();
+  initFirebase();
+  syncFromCloud().then(() => {
+    loadGame();
+    loadPlan();
+    loadAtas();
+    loadCustomEvents();
+  }).catch(() => {
+    loadGame();
+    loadPlan();
+    loadAtas();
+    loadCustomEvents();
+  });
+
+  // Sync to cloud a cada 10 segundos
+  setInterval(syncToCloud, 10000);
   loadLps();
   loadFlows();
   loadMediaPlans();
