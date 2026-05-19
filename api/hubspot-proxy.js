@@ -38,10 +38,16 @@ export default async function handler(req, res) {
     const response = await fetch(target, fetchOptions);
     const data = await response.text();
 
+    // Log para debug
+    console.log(`[HubSpot Proxy] ${method} ${target}`);
+    console.log(`[HubSpot Proxy] Status: ${response.status}`);
+    console.log(`[HubSpot Proxy] Response: ${data.slice(0, 200)}`);
+
     res.status(response.status);
     res.setHeader('Content-Type', 'application/json');
     res.send(data);
   } catch (err) {
+    console.error('[HubSpot Proxy] Error:', err);
     res.status(502).json({ error: err.message });
   }
 }
