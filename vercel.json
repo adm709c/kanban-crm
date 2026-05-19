@@ -2,11 +2,13 @@
   "buildCommand": "echo 'Build complete'",
   "outputDirectory": ".",
   "cleanUrls": false,
-  "routes": [
+  "rewrites": [
     {
-      "src": "/api/hubspot-proxy(.*)",
-      "dest": "/api/hubspot-proxy.js?path=$1"
-    },
+      "source": "/api/hubspot-proxy/:path*",
+      "destination": "/api/hubspot-proxy?path=/:path*"
+    }
+  ],
+  "routes": [
     {
       "src": "/api/(.*)",
       "dest": "/api/$1.js"
