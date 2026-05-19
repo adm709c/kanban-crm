@@ -4,8 +4,8 @@
   "cleanUrls": false,
   "routes": [
     {
-      "src": "/api/hubspot-proxy/(.*)",
-      "dest": "/api/hubspot-proxy.js"
+      "src": "/api/hubspot-proxy(.*)",
+      "dest": "/api/hubspot-proxy.js?path=$1"
     },
     {
       "src": "/api/(.*)",
