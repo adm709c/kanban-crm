@@ -6869,11 +6869,17 @@ window.addEventListener('DOMContentLoaded', function() {
 
   // Hide all tabs on Vercel, show only ROAS (Painel de Mídia)
   if (!IS_LOCAL) {
+    // Hide tab buttons
     const tabsToHide = ['kanban', 'agenda', 'atas', 'plano', 'lps', 'fluxos', 'midia', 'emails', 'conteudo', 'conquistas'];
     tabsToHide.forEach(tab => {
       const btn = document.getElementById('tab-' + tab);
       if (btn) btn.style.display = 'none';
     });
+    // Hide HUD (XP block and user pill)
+    const xpBlock = document.getElementById('xp-block');
+    const userPill = document.querySelector('.user-pill');
+    if (xpBlock) xpBlock.style.display = 'none';
+    if (userPill) userPill.style.display = 'none';
     // Show only ROAS Dashboard
     switchTab('roas');
   }
