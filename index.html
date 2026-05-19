@@ -6867,15 +6867,15 @@ window.addEventListener('DOMContentLoaded', function() {
   renderAll();
   updateHUD();
 
-  // Hide all tabs on Vercel, show only Painel de Mídia
+  // Hide all tabs on Vercel, show only ROAS (Painel de Mídia)
   if (!IS_LOCAL) {
-    const tabsToHide = ['kanban', 'agenda', 'atas', 'plano', 'lps', 'fluxos', 'emails', 'conteudo', 'roas', 'conquistas'];
+    const tabsToHide = ['kanban', 'agenda', 'atas', 'plano', 'lps', 'fluxos', 'midia', 'emails', 'conteudo', 'conquistas'];
     tabsToHide.forEach(tab => {
       const btn = document.getElementById('tab-' + tab);
       if (btn) btn.style.display = 'none';
     });
-    // Show only Painel de Mídia
-    switchTab('midia');
+    // Show only ROAS Dashboard
+    switchTab('roas');
   }
 
   </script>
